@@ -12,6 +12,12 @@ class DrawningView: UIView {
 
     var currentTouch:UITouch?
     var currentPath: Array<CGPoint>?
+    var currentSNSPath: SNSPath?
+    var allPaths = Array<SNSPath>()
+    var allKeys = Array<String>()
+    var currentColor:UIColor?
+    let firebase = SNSFirebase.sharedInstance
+    
     
     //MARK: Drawning functions
     override func draw(_ rect: CGRect) {
@@ -31,7 +37,6 @@ class DrawningView: UIView {
                         }
                     }
                     context.drawPath(using: CGPathDrawingMode.stroke)
-                    print(" --> did draw line in context")
                 }
             }
         }
@@ -39,14 +44,20 @@ class DrawningView: UIView {
     
     //MARK: Touch functions
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        currentColor = UIColor.black //FIXME
         if (currentPath == nil) {
+            firebase.testUnit(text: "Hello World from Touch Begins")
             currentTouch = UITouch()
             currentTouch = touches.first
             let currentPoint = currentTouch?.location(in: self)
             if let currentPoint = currentPoint {
                 currentPath = Array<CGPoint>()
                 currentPath?.append(currentPoint)
-                print("Start a new path with point \(currentPoint)")
+                if let currentColor = currentColor {
+                    currentSNSPath = SNSPath(point: currentPoint, color: currentColor)
+                } else {
+                    currentSNSPath = SNSPath(point: currentPoint, color: UIColor.red)
+                }
             } else {
                 print("Find an empty touch")
             }
@@ -57,36 +68,25 @@ class DrawningView: UIView {
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         addTouch(touches: touches)
-        setNeedsDisplay()
         super.touchesMoved(touches, with: event)
     }
     
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        currentTouch = nil
-        currentPath = nil
-        print("Touch cancelled")
+        resetPatch()
         setNeedsDisplay()
         super.touchesCancelled(touches, with: event)
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if (currentPath != nil) {
-            for touch in touches {
-                if (currentTouch == touch){
-                    let currentPoint = currentTouch?.location(in: self)
-                    if let currentPoint = currentPoint{
-                        currentPath?.append(currentPoint)
-                        print("End path with point \(currentPoint)")
-                    } else{
-                        print("Find an empty touch")
-                    }
-                }
-            }
-        }
-        setNeedsDisplay()
+        addTouch(touches: touches)
+        resetPatch()
+        super.touchesEnded(touches, with: event)
+    }
+    
+    func resetPatch() {
         currentTouch = nil
         currentPath = nil
-        super.touchesEnded(touches, with: event)
+        currentSNSPath?.serialize()
     }
     
     func addTouch(touches: Set<UITouch>) {
@@ -96,13 +96,14 @@ class DrawningView: UIView {
                     let currentPoint = currentTouch?.location(in: self)
                     if let currentPoint = currentPoint{
                         currentPath?.append(currentPoint)
-                        print("Append a new path with point \(currentPoint)")
+                        currentSNSPath?.addPoint(point: currentPoint)
                     } else{
                         print("Find an empty touch")
                     }
                 }
             }
         }
+        setNeedsDisplay()
     }
 
 }
