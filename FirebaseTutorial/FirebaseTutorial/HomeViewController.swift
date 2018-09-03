@@ -20,7 +20,6 @@ class HomeViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         self.hideKeyboardWhenTappedAround()
-        firebase.testUnit(text: "Hello World from Controller")
     }
 
     override func didReceiveMemoryWarning() {

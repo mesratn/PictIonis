@@ -43,6 +43,7 @@ class SNSPath: NSObject {
         let dictionary = NSMutableDictionary()
         let cgcolor = color.cgColor
         dictionary["color"] = CIColor(cgColor: cgcolor).stringRepresentation
+        //dictionary["color"] = 1
         let pointsOfPath = NSMutableArray()
         for point in points{
             let pointDictionary = NSMutableDictionary()

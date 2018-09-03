@@ -46,7 +46,6 @@ class DrawningView: UIView {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         currentColor = UIColor.black //FIXME
         if (currentPath == nil) {
-            firebase.testUnit(text: "Hello World from Touch Begins")
             currentTouch = UITouch()
             currentTouch = touches.first
             let currentPoint = currentTouch?.location(in: self)
@@ -87,6 +86,9 @@ class DrawningView: UIView {
         currentTouch = nil
         currentPath = nil
         currentSNSPath?.serialize()
+        if let pathToSend = currentSNSPath {
+            firebase.addPathToSend(path: pathToSend)
+        }
     }
     
     func addTouch(touches: Set<UITouch>) {
