@@ -7,6 +7,15 @@
 //
 
 import UIKit
+import Foundation
+
+extension Notification.Name {
+    
+    static let callbackFromFirebase = Notification.Name("callbackFromFirebase")
+    static let callbackResetDrawing = Notification.Name("callbackResetDrawing")
+    static let callbackNewColor = Notification.Name("callbackNewColor")
+    
+}
 
 class DrawningView: UIView {
 
@@ -18,28 +27,108 @@ class DrawningView: UIView {
     var currentColor:UIColor?
     let firebase = SNSFirebase.sharedInstance
     
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        NotificationCenter.default.addObserver(self, selector: #selector(addFromFirebase(sender:)), name: Notification.Name.callbackFromFirebase, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(resetDrawing(sender:)), name: Notification.Name.callbackResetDrawing, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(recieveNewColor(sender:)), name: Notification.Name.callbackNewColor, object: nil)
+    }
+    
+    func recieveNewColor(sender: Notification){
+        if let info = sender.userInfo as? Dictionary<String,String> {
+            if let stringNewColor = info["newColor"]{
+                let myCiColor = CIColor(string: stringNewColor)
+                let myUiColor = UIColor(ciColor: myCiColor)
+                currentColor = myUiColor
+                print("Received new color \(stringNewColor)")
+            }
+        }
+        
+    }
+    
+    func resetDrawing(sender: Notification){
+        allKeys.removeAll()
+        allPaths.removeAll()
+        firebase.resetValues()
+        setNeedsDisplay()
+        
+    }
+    
+    func addFromFirebase(sender: Notification){
+        print("Receive Notifications IS WORKING")
+//        print("My key : ", info["send"])
+//        print("My data : ", sender.object)
+        if let info = sender.userInfo {
+            let key = info["send"]
+            let data = sender.object as! NSDictionary
+            let firebaseKey = key as! String
+            //firebase.testUnit(firebaseKey)
+            if !allKeys.contains(firebaseKey){
+                let points = data.value(forKey: "points") as! NSArray
+                let myColor = data.value(forKey: "color") //as! String
+                let mySColor = "\(String(describing: myColor))"
+                let myCiColor = CIColor(string: mySColor)
+                let myUiColor = UIColor(ciColor: myCiColor)
+                
+
+                let firstPoint = points.firstObject! as! NSDictionary
+                print("First Point : ", firstPoint)
+                print(firstPoint.value(forKey: "x"))
+                let currentPoint = CGPoint(x: firstPoint.value(forKey: "x") as! Double, y: firstPoint.value(forKey: "y") as! Double)
+                currentSNSPath = SNSPath(point: currentPoint, color: myUiColor)
+                for point in points{
+                    let point = point as! NSDictionary
+                    let p = CGPoint(x: point.value(forKey: "x") as! Double, y: point.value(forKey: "y") as! Double)
+                    currentSNSPath?.addPoint(point: p)
+                }
+                resetPatch(sendToFirebase: false)
+                setNeedsDisplay()
+            }
+            
+        }
+    }
+    
     
     //MARK: Drawning functions
     override func draw(_ rect: CGRect) {
+        
         super.draw(rect)
-        if (currentPath != nil) {
-            let context = UIGraphicsGetCurrentContext()
-            if let context = context {
-                context.setLineWidth(1.5)
-                context.beginPath()
-                context.setStrokeColor(UIColor.black.cgColor)
-                if let firstPoint = currentPath?.first {
-                    context.move(to: firstPoint)
-                    if (currentPath!.count > 1) {
-                        for index in 1...currentPath!.count - 1{
-                            let currentPoint = currentPath![index]
-                            context.addLine(to: currentPoint)
+        let context = UIGraphicsGetCurrentContext()
+        if let context = context {
+            context.setLineWidth(1.5)
+            context.beginPath()
+            
+
+            for path in allPaths {
+                let pathArray = path.points
+                let color = path.color
+                context.setStrokeColor(color.cgColor)
+                if let firstPoint = pathArray.first {
+                    context.move(to: CGPoint.init(x: firstPoint.x!, y: firstPoint.y!))
+                    if (pathArray.count > 1) {
+                        for index in 1...pathArray.count - 1{
+                            let currentPoint = pathArray[index]
+                            context.addLine(to: CGPoint.init(x: currentPoint.x!, y: currentPoint.y!))
                         }
                     }
                     context.drawPath(using: CGPathDrawingMode.stroke)
                 }
             }
+
+            
+            if let firstPoint = currentPath?.first {
+                context.move(to: firstPoint)
+                if (currentPath!.count > 1) {
+                    for index in 1...currentPath!.count - 1{
+                        let currentPoint = currentPath![index]
+                        context.addLine(to: currentPoint)
+                    }
+                }
+                context.drawPath(using: CGPathDrawingMode.stroke)
+            }
         }
+        
+
     }
     
     //MARK: Touch functions
@@ -71,23 +160,27 @@ class DrawningView: UIView {
     }
     
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        resetPatch()
+        resetPatch(sendToFirebase: true)
         setNeedsDisplay()
         super.touchesCancelled(touches, with: event)
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         addTouch(touches: touches)
-        resetPatch()
+        resetPatch(sendToFirebase: true)
         super.touchesEnded(touches, with: event)
     }
     
-    func resetPatch() {
+    func resetPatch(sendToFirebase:Bool) {
         currentTouch = nil
         currentPath = nil
         currentSNSPath?.serialize()
         if let pathToSend = currentSNSPath {
-            firebase.addPathToSend(path: pathToSend)
+            if sendToFirebase{
+                let returnKey = firebase.addPathToSend(path: pathToSend)
+                allKeys.append(returnKey)
+            }
+            allPaths.append(pathToSend)
         }
     }
     

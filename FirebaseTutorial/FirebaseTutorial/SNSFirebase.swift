@@ -12,15 +12,18 @@ import FirebaseDatabase
 import Firebase
 
 class SNSFirebase {
-    let callbackFromFirebase = "callbackFromFirebase"
     static let sharedInstance = SNSFirebase()
     var chieldAddedHandler = DatabaseHandle()
-    
-    private init() {
-    }
-    
     let pathsInLine = NSMutableSet()
     var ref: DatabaseReference = Database.database().reference()
+    
+    private init() {
+        chieldAddedHandler = ref.observe(.childAdded, with: { (snapshot: DataSnapshot) in
+            let myKey = snapshot.key
+            let myValue = snapshot.value as? NSDictionary
+            NotificationCenter.default.post(name: Notification.Name.callbackFromFirebase, object: myValue, userInfo: ["send" : myKey])
+        })
+    }
     
     func testUnit(text: String) {
             self.ref.setValue(text)
@@ -41,7 +44,7 @@ class SNSFirebase {
         return firebaseKey.key
     }
     
-    func resetValue() {
+    func resetValues() {
         self.ref.setValue("")
     }
 }
