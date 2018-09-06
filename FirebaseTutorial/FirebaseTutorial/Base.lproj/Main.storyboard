@@ -258,12 +258,18 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="20"/>
                                 <state key="normal" title="Clear Screen"/>
+                                <connections>
+                                    <action selector="clearButton:" destination="hxY-Ju-URQ" eventType="touchUpInside" id="eQ4-f0-2oE"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tJg-gE-MVg">
                                 <rect key="frame" x="246" y="625" width="120" height="36"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="20"/>
                                 <state key="normal" title="Change Color"/>
+                                <connections>
+                                    <action selector="changeColorButton:" destination="hxY-Ju-URQ" eventType="touchUpInside" id="qlC-fX-d2y"/>
+                                </connections>
                             </button>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qlU-Dq-0Mz" customClass="DrawningView" customModule="FirebaseTutorial" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="28" width="375" height="589"/>
@@ -273,6 +279,10 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
+                    <connections>
+                        <outlet property="changeColorOutlet" destination="tJg-gE-MVg" id="vYg-ut-Q8b"/>
+                        <outlet property="drawningView" destination="qlU-Dq-0Mz" id="Y7d-0N-fqH"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="vGB-OU-MCj" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

@@ -8,6 +8,7 @@
 
 import UIKit
 import Firebase
+import NKOColorPickerView
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {

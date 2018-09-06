@@ -55,25 +55,24 @@ class DrawningView: UIView {
     }
     
     func addFromFirebase(sender: Notification){
-        print("Receive Notifications IS WORKING")
-//        print("My key : ", info["send"])
-//        print("My data : ", sender.object)
         if let info = sender.userInfo {
             let key = info["send"]
             let data = sender.object as! NSDictionary
+            print("DATA : ", data)
             let firebaseKey = key as! String
-            //firebase.testUnit(firebaseKey)
             if !allKeys.contains(firebaseKey){
                 let points = data.value(forKey: "points") as! NSArray
-                let myColor = data.value(forKey: "color") //as! String
+                let myColor = data.value(forKey: "color")
+                print("My Color :", myColor)
                 let mySColor = "\(String(describing: myColor))"
-                let myCiColor = CIColor(string: mySColor)
+                let myCiColor = CIColor(string: mySColor as! String)
                 let myUiColor = UIColor(ciColor: myCiColor)
+                print("My SColor :", mySColor)
+                print("My CIColor :", myCiColor)
+                print("My UIColor :", myUiColor)
                 
 
                 let firstPoint = points.firstObject! as! NSDictionary
-                print("First Point : ", firstPoint)
-                print(firstPoint.value(forKey: "x"))
                 let currentPoint = CGPoint(x: firstPoint.value(forKey: "x") as! Double, y: firstPoint.value(forKey: "y") as! Double)
                 currentSNSPath = SNSPath(point: currentPoint, color: myUiColor)
                 for point in points{
@@ -98,7 +97,6 @@ class DrawningView: UIView {
             context.setLineWidth(1.5)
             context.beginPath()
             
-
             for path in allPaths {
                 let pathArray = path.points
                 let color = path.color
@@ -114,7 +112,6 @@ class DrawningView: UIView {
                     context.drawPath(using: CGPathDrawingMode.stroke)
                 }
             }
-
             
             if let firstPoint = currentPath?.first {
                 context.move(to: firstPoint)
@@ -133,7 +130,7 @@ class DrawningView: UIView {
     
     //MARK: Touch functions
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        currentColor = UIColor.black //FIXME
+        //currentColor = UIColor.black //FIXME
         if (currentPath == nil) {
             currentTouch = UITouch()
             currentTouch = touches.first
@@ -141,7 +138,7 @@ class DrawningView: UIView {
             if let currentPoint = currentPoint {
                 currentPath = Array<CGPoint>()
                 currentPath?.append(currentPoint)
-                if let currentColor = currentColor {
+                if let currentColor = self.currentColor {
                     currentSNSPath = SNSPath(point: currentPoint, color: currentColor)
                 } else {
                     currentSNSPath = SNSPath(point: currentPoint, color: UIColor.red)
@@ -174,7 +171,6 @@ class DrawningView: UIView {
     func resetPatch(sendToFirebase:Bool) {
         currentTouch = nil
         currentPath = nil
-        currentSNSPath?.serialize()
         if let pathToSend = currentSNSPath {
             if sendToFirebase{
                 let returnKey = firebase.addPathToSend(path: pathToSend)

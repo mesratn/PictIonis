@@ -15,7 +15,6 @@ class SNSPoint:NSObject{
     init(point: CGPoint) {
         x = point.x
         y = point.y
-        print("New point created")
     }
 }
 
@@ -28,14 +27,12 @@ class SNSPath: NSObject {
         self.points = Array<SNSPoint>()
         let newPoint = SNSPoint(point: point)
         points.append(newPoint)
-        print("Start track points in SNSPath")
         super.init()
     }
     
     func addPoint(point:CGPoint){
         let newPoint = SNSPoint(point: point)
         points.append(newPoint)
-        print("New point appended")
     }
     
     func serialize() -> NSDictionary{
@@ -43,7 +40,6 @@ class SNSPath: NSObject {
         let dictionary = NSMutableDictionary()
         let cgcolor = color.cgColor
         dictionary["color"] = CIColor(cgColor: cgcolor).stringRepresentation
-        //dictionary["color"] = 1
         let pointsOfPath = NSMutableArray()
         for point in points{
             let pointDictionary = NSMutableDictionary()
@@ -52,7 +48,6 @@ class SNSPath: NSObject {
             pointsOfPath.add(pointDictionary)
         }
         dictionary["points"] = pointsOfPath
-        print(dictionary)
         return dictionary
     }
 }
